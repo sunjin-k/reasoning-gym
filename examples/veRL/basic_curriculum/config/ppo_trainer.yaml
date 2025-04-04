@@ -27,6 +27,7 @@ actor_rollout_ref:
     ppo_max_token_len_per_gpu: 16384 # n * ${data.max_prompt_length} + ${data.max_response_length}
     grad_clip: 1.0
     clip_ratio: 0.2
+    loss_agg_mode: "token-mean" # / "seq-mean-token-sum" / "seq-mean-token-mean"
     entropy_coeff: 0.001
     use_kl_loss: False # True for GRPO
     kl_loss_coef: 0.001 # for grpo
@@ -74,6 +75,7 @@ actor_rollout_ref:
     load_format: dummy_dtensor
     tensor_model_parallel_size: 2
     max_num_batched_tokens: 8192
+    max_model_len: null
     max_num_seqs: 1024
     log_prob_micro_batch_size: null # will be deprecated, use log_prob_micro_batch_size_per_gpu
     log_prob_micro_batch_size_per_gpu: null
@@ -85,6 +87,8 @@ actor_rollout_ref:
     do_sample: True
     # number of responses (i.e. num sample times)
     n: 1 # > 1 for grpo
+    val_kwargs:
+      do_sample: False # default eager for validation
 
 critic:
   strategy: fsdp
@@ -145,6 +149,7 @@ algorithm:
   gamma: 1.0
   lam: 1.0
   adv_estimator: gae
+  use_kl_in_reward: False
   kl_penalty: kl  # how to estimate kl divergence
   kl_ctrl:
     type: fixed
